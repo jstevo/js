@@ -1,0 +1,106 @@
+"""The purpose of this code is to convert a .csv file from a google form to a readable powerpoint"""
+
+"""
+Things to create
+agg_scoring excel macro
+A way to tie rush csv with agg_scoring csv
+A way to post pictures to slides
+A slide sorting by agg_score - creates green zone, yellow zone, red zone
+"""
+
+# Load Modules
+import csv
+from pptx import Presentation
+import glob
+from PIL import Image
+import os
+from pptx.util import Inches
+from collections import defaultdict
+
+# Creates list of images from PCT_Pictures directory
+def input_pic():
+    image_list = []
+    img_dir = 'PCT_Pictures'
+    file_dir = os.path.join(img_dir, '*g')
+    for filename in glob.glob(file_dir):
+        im = Image.open(filename)
+        image_list.append(im)
+        return image_list
+
+# Returns a list of lists containing rush application info - Used for creating slides
+# Needs to be merged with agg_score - haven't found a good way yet, maybe excel?
+def input_rush_csv():
+    with open('Rush Application.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        list_csv = list(reader)
+        return list_csv
+
+# Returns a list of lists containing vote data from the actives voting on pledges
+# timestamp, pledge name, score given
+def input_score_csv():
+    with open('Test_Data.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        list_csv = list(reader)
+        return list_csv
+
+# Returns a dictionary (key=pledge name, value = list of scores given)
+# Hoping to create a macro in excel that aggregates score for us and this will simply create the dictionary
+# to link score to pledge name.
+def agg_score_room_1():
+    d = defaultdict(list)
+    with open('Test_Data.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        list_csv = list(reader)
+        for j in list_csv:
+            q=j[1]
+            d[q] += j[2]
+    d.pop("Pledge you're voting on")
+    return d
+
+def agg_score_room_2():
+    d = defaultdict(list)
+    with open('Test_Data.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        list_csv = list(reader)
+        for j in list_csv:
+            q=j[1]
+            d[q] += j[2]
+    d.pop("Pledge you're voting on")
+    return d
+
+def agg_score_room_3():
+    d = defaultdict(list)
+    with open('Test_Data.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        list_csv = list(reader)
+        for j in list_csv:
+            q=j[1]
+            d[q] += j[2]
+    d.pop("Pledge you're voting on")
+    return d
+
+# End scoring blocks
+
+# Creating Presentation Here
+prs = Presentation()
+slide_layout = prs.slide_layouts[1]
+
+for rushee in input_rush_csv():
+
+    slide = prs.slides.add_slide(slide_layout)
+    shapes = slide.shapes
+
+    title_shape = shapes.title
+    body_shapes = shapes.placeholders[1]
+
+    title_shape.text = rushee[2]
+    tf = body_shapes.text_frame
+    tf.text = f'{rushee[3]}, {rushee[4]}'
+    p = tf.add_paragraph()
+# Not a great link for score to slide, but it works if name are the same on both - not sure how we control for this
+    score = agg_score_room_1()
+    for name in agg_score_room_1():
+        if name == rushee[2]:
+            p.text = name
+
+prs.save('test.pptx')
